@@ -3,7 +3,7 @@
  * Plugin Name: TexoLink Internal Links
  * Plugin URI: https://texolink.com
  * Description: AI-powered internal link suggestions for WordPress
- * Version: 2.1.13
+ * Version: 2.1.14
  * Author: Ricky Carter
  * Author URI: https://texolink.com
  * Text Domain: texolink-internal-links
@@ -29,7 +29,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXOLINK_VERSION', '2.1.13');
+define('TEXOLINK_VERSION', '2.1.14');
 define('TEXOLINK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXOLINK_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TEXOLINK_PLUGIN_FILE', __FILE__);
@@ -439,11 +439,12 @@ wp_localize_script('texolink-admin', 'texolinkSettings', array(
      */
     public function ajax_get_all_posts() {
         check_ajax_referer('texolink_nonce', 'nonce');
-        
+
         $offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
         $post_type = isset($_POST['post_type']) ? sanitize_text_field($_POST['post_type']) : 'all';
-        
+        $full_data = isset($_POST['full_data']) ? (bool)$_POST['full_data'] : false;
+
         // Determine which post types to query
         if ($post_type === 'all') {
             // Get all public post types except attachments
@@ -454,24 +455,44 @@ wp_localize_script('texolink-admin', 'texolinkSettings', array(
             // Single post type
             $post_types = array($post_type);
         }
-        
+
         $args = array(
             'post_type' => $post_types,
             'post_status' => 'publish',
-            'posts_per_page' => $limit,
-            'offset' => $offset,
+            'posts_per_page' => $full_data ? -1 : $limit,  // Get all posts if full_data requested
+            'offset' => $full_data ? 0 : $offset,
             'orderby' => 'date',
             'order' => 'DESC',
-            'fields' => 'ids'
+            'fields' => $full_data ? 'all' : 'ids'
         );
-        
+
         $query = new WP_Query($args);
-        
-        wp_send_json_success(array(
-            'post_ids' => $query->posts,
-            'total' => $query->found_posts,
-            'has_more' => ($offset + $limit) < $query->found_posts
-        ));
+
+        // If full_data requested, return complete post objects
+        if ($full_data) {
+            $posts = array();
+            foreach ($query->posts as $post) {
+                $posts[] = array(
+                    'id' => $post->ID,
+                    'title' => $post->post_title,
+                    'content' => $post->post_content,
+                    'excerpt' => $post->post_excerpt,
+                    'url' => get_permalink($post->ID),
+                    'date' => $post->post_date,
+                    'modified' => $post->post_modified,
+                    'type' => $post->post_type
+                );
+            }
+
+            wp_send_json_success($posts);
+        } else {
+            // Original behavior for backwards compatibility
+            wp_send_json_success(array(
+                'post_ids' => $query->posts,
+                'total' => $query->found_posts,
+                'has_more' => ($offset + $limit) < $query->found_posts
+            ));
+        }
     }
     
     /**

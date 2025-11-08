@@ -190,7 +190,8 @@ function startSyncWithProgress($btn, $status, targetCount, startCount) {
         method: 'POST',
         data: {
             action: 'texolink_get_all_posts',
-            nonce: texolinkSettings.nonce
+            nonce: texolinkSettings.nonce,
+            full_data: true  // Request full post data, not just IDs
         },
         success: function(wpResponse) {
             if (!wpResponse.success || !wpResponse.data) {
