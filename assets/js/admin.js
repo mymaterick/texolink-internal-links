@@ -184,40 +184,34 @@ function checkPostCounts($btn, $status) {
  * Start sync and poll for completion
  */
 function startSyncWithProgress($btn, $status, targetCount, startCount) {
-    // Trigger the sync
-    $('#sync-posts-btn').trigger('click');
-    
-    // Poll Railway every 3 seconds to check progress
-    let pollCount = 0;
-    const maxPolls = 400; // 20 minutes max
-    
-    const pollInterval = setInterval(function() {
-        pollCount++;
-        
-        $.ajax({
-            url: texolinkSettings.apiUrl + '/posts',
-            method: 'GET',
-            success: function(response) {
-                const currentCount = response.total || 0;
-                const remaining = targetCount - currentCount;
-                const progress = Math.round((currentCount / targetCount) * 100);
-                
-                // Create progress bar
-                const progressBar = createProgressBar(progress, 'Syncing Posts');
-                
-                $status.html(
-                    '<strong>Step 1/2: Syncing Posts</strong><br>' +
-                    progressBar +
-                    '<div style="margin-top: 10px;">' +
-                    currentCount + ' / ' + targetCount + ' posts synced<br>' +
-                    '<em>' + remaining + ' remaining...</em>' +
-                    '</div>'
-                );
-                
-                // Check if sync complete
-                if (currentCount >= targetCount) {
-                    clearInterval(pollInterval);
-                    
+    // Get all WordPress posts and sync them to Railway
+    $.ajax({
+        url: ajaxurl,
+        method: 'POST',
+        data: {
+            action: 'texolink_get_all_posts',
+            nonce: texolinkSettings.nonce
+        },
+        success: function(wpResponse) {
+            if (!wpResponse.success || !wpResponse.data) {
+                $status.html('❌ Error getting WordPress posts');
+                $btn.prop('disabled', false);
+                return;
+            }
+
+            const posts = wpResponse.data;
+            const total = posts.length;
+            let synced = 0;
+            let failed = 0;
+
+            console.log('Starting sync of ' + total + ' posts to Railway...');
+
+            // Function to sync a single post
+            function syncPost(index) {
+                if (index >= total) {
+                    // All done!
+                    console.log('Sync complete! Synced: ' + synced + ', Failed: ' + failed);
+
                     $status.addClass('active').html(`
                         <div class="status-header">
                             <div class="spinner is-active"></div>
@@ -229,7 +223,7 @@ function startSyncWithProgress($btn, $status, targetCount, startCount) {
                         <div class="status-details">
                             <div class="status-row">
                                 <span class="status-label">Step 1: Post Sync</span>
-                                <span class="status-value">✓ ${currentCount} posts synced</span>
+                                <span class="status-value">✓ ${synced} posts synced</span>
                             </div>
                             <div class="status-row">
                                 <span class="status-label">Step 2: AI Generation</span>
@@ -237,29 +231,64 @@ function startSyncWithProgress($btn, $status, targetCount, startCount) {
                             </div>
                         </div>
                         <div class="current-task">
-                            🚀 Preparing to analyze ${currentCount} posts and generate thousands of link suggestions!
+                            🚀 Preparing to analyze ${synced} posts and generate thousands of link suggestions!
                         </div>
                     `);
-                    
+
                     // Auto-start generation after sync completes!
                     setTimeout(function() {
                         startSuggestionGenerationWithProgress($btn, $status);
                     }, 2000);
+                    return;
                 }
-                
-                // Safety: stop polling after 20 minutes
-                if (pollCount >= maxPolls) {
-                    clearInterval(pollInterval);
-                    $status.html('⏱️ Sync taking longer than expected. Please refresh and check post count.');
-                    $btn.prop('disabled', false).text('Generate Suggestions for All Posts');
-                }
-            },
-            error: function() {
-                // Keep polling even if one request fails
-                console.log('Poll request failed, continuing...');
+
+                const post = posts[index];
+                const progress = Math.round(((index + 1) / total) * 100);
+
+                // Update progress UI
+                $status.html(
+                    '<strong>Step 1/2: Syncing Posts</strong><br>' +
+                    createProgressBar(progress, 'Syncing Posts') +
+                    '<div style="margin-top: 10px;">' +
+                    (index + 1) + ' / ' + total + ' posts synced<br>' +
+                    '<em>Syncing: ' + escapeHtml(post.title) + '</em>' +
+                    '</div>'
+                );
+
+                // Send to Railway
+                $.ajax({
+                    url: texolinkSettings.apiUrl + '/posts',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        site_domain: texolinkSettings.siteDomain || window.location.hostname,
+                        wordpress_id: post.id,
+                        title: post.title,
+                        content: post.content,
+                        url: post.url,
+                        excerpt: post.excerpt || ''
+                    }),
+                    success: function() {
+                        synced++;
+                        syncPost(index + 1);
+                    },
+                    error: function(xhr) {
+                        failed++;
+                        console.error('Failed to sync post ' + post.id + ':', xhr.responseJSON);
+                        // Continue anyway
+                        syncPost(index + 1);
+                    }
+                });
             }
-        });
-    }, 3000); // Poll every 3 seconds
+
+            // Start syncing from first post
+            syncPost(0);
+        },
+        error: function() {
+            $status.html('❌ Error getting WordPress posts');
+            $btn.prop('disabled', false);
+        }
+    });
 }
 
 /**
