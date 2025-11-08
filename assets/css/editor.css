@@ -1,0 +1,118 @@
+/**
+ * TexoLink Gutenberg Editor Styles
+ */
+
+.texolink-sidebar-content {
+    padding: 16px;
+}
+
+.texolink-sidebar-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.texolink-sidebar-header .description {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: #757575;
+}
+
+.texolink-sidebar-actions {
+    margin-bottom: 20px;
+}
+
+.texolink-sidebar-actions button {
+    width: 100%;
+}
+
+.texolink-loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.texolink-loading p {
+    margin-top: 12px;
+    color: #757575;
+}
+
+.texolink-suggestion {
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    border-left: 4px solid #2271b1;
+}
+
+.texolink-suggestion:last-child {
+    margin-bottom: 0;
+}
+
+.suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.suggestion-header strong {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.suggestion-score {
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.suggestion-reason {
+    margin: 8px 0;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.suggestion-anchor {
+    font-size: 12px;
+    color: #757575;
+    margin-bottom: 8px;
+}
+
+.suggestion-anchor code {
+    background: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #2271b1;
+    font-weight: 600;
+}
+
+.texolink-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #757575;
+}
+
+.texolink-empty p {
+    margin: 0 0 8px 0;
+}
+
+.texolink-empty .description {
+    font-size: 13px;
+}
+
+/* Panel Styles */
+.components-panel__body.is-opened .texolink-suggestion {
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

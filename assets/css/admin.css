@@ -1,0 +1,95 @@
+/**
+ * TexoLink Admin Styles
+ */
+
+/* General Admin Styles */
+.texolink-dashboard,
+.texolink-settings,
+.texolink-bulk-analyzer {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* Loading States */
+.texolink-loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.texolink-loading .spinner {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+/* Error States */
+.texolink-error {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-left: 4px solid #ef4444;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.texolink-error p {
+    margin: 0;
+    color: #991b1b;
+}
+
+/* Success States */
+.texolink-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #10b981;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.texolink-success p {
+    margin: 0;
+    color: #065f46;
+}
+
+/* Buttons */
+.texolink-button-primary {
+    background: #6366f1 !important;
+    border-color: #6366f1 !important;
+    color: white !important;
+}
+
+.texolink-button-primary:hover {
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+}
+
+/* Cards */
+.texolink-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.texolink-card h3 {
+    margin-top: 0;
+    color: #1f2937;
+}
+
+/* Utility Classes */
+.texolink-mb-0 { margin-bottom: 0; }
+.texolink-mb-10 { margin-bottom: 10px; }
+.texolink-mb-20 { margin-bottom: 20px; }
+.texolink-mt-20 { margin-top: 20px; }
+
+.texolink-text-center { text-align: center; }
+.texolink-text-muted { color: #6b7280; }
+
+/* Responsive */
+@media (max-width: 782px) {
+    .texolink-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
