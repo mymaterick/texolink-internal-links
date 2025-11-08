@@ -118,9 +118,9 @@ function checkPostCounts($btn, $status) {
         success: function(wpResponse) {
             const wpPostCount = wpResponse.data || 0;
             
-            // Step 2: Get Railway post count
+            // Step 2: Get Railway post count for THIS site
             $.ajax({
-                url: texolinkSettings.apiUrl + '/posts',
+                url: texolinkSettings.apiUrl + '/posts?site_domain=' + (texolinkSettings.siteDomain || window.location.hostname),
                 method: 'GET',
                 success: function(railwayResponse) {
                     const railwayPostCount = railwayResponse.total || 0;
