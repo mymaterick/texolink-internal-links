@@ -182,114 +182,132 @@ function checkPostCounts($btn, $status) {
 
 /**
  * Start sync and poll for completion
+ * Uses the existing working sync code (texolink_sync_post)
  */
 function startSyncWithProgress($btn, $status, targetCount, startCount) {
-    // Get all WordPress posts and sync them to Railway
-    $.ajax({
-        url: ajaxurl,
-        method: 'POST',
-        data: {
-            action: 'texolink_get_all_posts',
-            nonce: texolinkSettings.nonce,
-            full_data: true  // Request full post data, not just IDs
-        },
-        success: function(wpResponse) {
-            if (!wpResponse.success || !wpResponse.data) {
+    let allPostIds = [];
+    let processedPosts = 0;
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Step 1: Fetch all post IDs
+    fetchAllPostIds(0);
+
+    function fetchAllPostIds(offset) {
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'texolink_get_all_posts',
+                nonce: texolinkSettings.nonce,
+                offset: offset,
+                limit: 100,
+                post_type: 'all'
+            },
+            success: function(response) {
+                if (response.success && response.data.post_ids) {
+                    allPostIds = allPostIds.concat(response.data.post_ids);
+
+                    if (response.data.has_more) {
+                        // Fetch more posts
+                        fetchAllPostIds(offset + 100);
+                    } else {
+                        // All post IDs fetched, start syncing
+                        console.log('Starting sync of ' + allPostIds.length + ' posts to Railway...');
+                        syncNextPost(0);
+                    }
+                } else {
+                    $status.html('❌ Error getting WordPress posts');
+                    $btn.prop('disabled', false);
+                }
+            },
+            error: function() {
                 $status.html('❌ Error getting WordPress posts');
                 $btn.prop('disabled', false);
-                return;
             }
+        });
+    }
 
-            const posts = wpResponse.data;
-            const total = posts.length;
-            let synced = 0;
-            let failed = 0;
+    // Step 2: Sync each post using the working texolink_sync_post action
+    function syncNextPost(index) {
+        if (index >= allPostIds.length) {
+            // All done!
+            console.log('Sync complete! Synced: ' + successCount + ', Failed: ' + errorCount);
 
-            console.log('Starting sync of ' + total + ' posts to Railway...');
+            $status.addClass('active').html(`
+                <div class="status-header">
+                    <div class="spinner is-active"></div>
+                    <span>⚡ Launching AI Generation</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: 50%"></div>
+                </div>
+                <div class="status-details">
+                    <div class="status-row">
+                        <span class="status-label">Step 1: Post Sync</span>
+                        <span class="status-value">✓ ${successCount} posts synced</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Step 2: AI Generation</span>
+                        <span class="status-value">Starting in 2 seconds...</span>
+                    </div>
+                </div>
+                <div class="current-task">
+                    🚀 Preparing to analyze ${successCount} posts and generate thousands of link suggestions!
+                </div>
+            `);
 
-            // Function to sync a single post
-            function syncPost(index) {
-                if (index >= total) {
-                    // All done!
-                    console.log('Sync complete! Synced: ' + synced + ', Failed: ' + failed);
-
-                    $status.addClass('active').html(`
-                        <div class="status-header">
-                            <div class="spinner is-active"></div>
-                            <span>⚡ Launching AI Generation</span>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar-fill" style="width: 50%"></div>
-                        </div>
-                        <div class="status-details">
-                            <div class="status-row">
-                                <span class="status-label">Step 1: Post Sync</span>
-                                <span class="status-value">✓ ${synced} posts synced</span>
-                            </div>
-                            <div class="status-row">
-                                <span class="status-label">Step 2: AI Generation</span>
-                                <span class="status-value">Starting in 2 seconds...</span>
-                            </div>
-                        </div>
-                        <div class="current-task">
-                            🚀 Preparing to analyze ${synced} posts and generate thousands of link suggestions!
-                        </div>
-                    `);
-
-                    // Auto-start generation after sync completes!
-                    setTimeout(function() {
-                        startSuggestionGenerationWithProgress($btn, $status);
-                    }, 2000);
-                    return;
-                }
-
-                const post = posts[index];
-                const progress = Math.round(((index + 1) / total) * 100);
-
-                // Update progress UI
-                $status.html(
-                    '<strong>Step 1/2: Syncing Posts</strong><br>' +
-                    createProgressBar(progress, 'Syncing Posts') +
-                    '<div style="margin-top: 10px;">' +
-                    (index + 1) + ' / ' + total + ' posts synced<br>' +
-                    '<em>Syncing: ' + escapeHtml(post.title) + '</em>' +
-                    '</div>'
-                );
-
-                // Send to Railway
-                $.ajax({
-                    url: texolinkSettings.apiUrl + '/posts',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        site_domain: texolinkSettings.siteDomain || window.location.hostname,
-                        wordpress_id: post.id,
-                        title: post.title,
-                        content: post.content,
-                        url: post.url,
-                        excerpt: post.excerpt || ''
-                    }),
-                    success: function() {
-                        synced++;
-                        syncPost(index + 1);
-                    },
-                    error: function(xhr) {
-                        failed++;
-                        console.error('Failed to sync post ' + post.id + ':', xhr.responseJSON);
-                        // Continue anyway
-                        syncPost(index + 1);
-                    }
-                });
-            }
-
-            // Start syncing from first post
-            syncPost(0);
-        },
-        error: function() {
-            $status.html('❌ Error getting WordPress posts');
-            $btn.prop('disabled', false);
+            // Auto-start generation after sync completes!
+            setTimeout(function() {
+                startSuggestionGenerationWithProgress($btn, $status);
+            }, 2000);
+            return;
         }
-    });
+
+        const postId = allPostIds[index];
+        const progress = Math.round(((index + 1) / allPostIds.length) * 100);
+
+        // Update progress UI
+        $status.html(
+            '<strong>Step 1/2: Syncing Posts</strong><br>' +
+            createProgressBar(progress, 'Syncing Posts') +
+            '<div style="margin-top: 10px;">' +
+            (index + 1) + ' / ' + allPostIds.length + ' posts synced<br>' +
+            '<em>Syncing post ID: ' + postId + '</em>' +
+            '</div>'
+        );
+
+        // Use the existing working sync action
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'texolink_sync_post',
+                nonce: texolinkSettings.nonce,
+                post_id: postId
+            },
+            success: function(response) {
+                processedPosts++;
+                if (response.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                }
+                // Continue to next post with small delay
+                setTimeout(function() {
+                    syncNextPost(index + 1);
+                }, 100);
+            },
+            error: function() {
+                processedPosts++;
+                errorCount++;
+                // Continue to next post
+                setTimeout(function() {
+                    syncNextPost(index + 1);
+                }, 100);
+            }
+        });
+    }
 }
 
 /**
