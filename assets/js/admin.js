@@ -271,6 +271,7 @@ function startSuggestionGenerationWithProgress($btn, $status) {
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
+            site_domain: texolinkSettings.siteDomain || window.location.hostname,
             regenerate: false
         }),
         timeout: 10000, // 10 second timeout to get job_id
