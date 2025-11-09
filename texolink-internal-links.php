@@ -8,6 +8,12 @@
  * Author URI: https://texolink.com
  * Text Domain: texolink-internal-links
  * Domain Path: /languages
+ *
+ * Copyright (c) 2025 Rick Carter / TexoLink
+ * All rights reserved.
+ *
+ * This file is part of TexoLink and is proprietary software.
+ * Unauthorized use is prohibited.
  */
 // ============================================================================
 // AUTO-UPDATE CHECKER - Checks GitHub for new releases
