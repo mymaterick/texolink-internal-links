@@ -126,19 +126,19 @@ function checkPostCounts($btn, $status) {
                     const railwayPostCount = railwayResponse.total || 0;
                     
                     console.log('WP:', wpPostCount, 'Railway:', railwayPostCount);
-                    
-                    if (railwayPostCount < wpPostCount) {
-                        // Need to sync!
-                        const missing = wpPostCount - railwayPostCount;
+
+                    if (railwayPostCount !== wpPostCount || railwayPostCount === 0) {
+                        // Need to sync! (counts don't match OR Railway is empty)
+                        const missing = Math.abs(wpPostCount - railwayPostCount);
                         $status.html(
                             '<div class="spinner is-active" style="float: left; margin-right: 10px;"></div>' +
                             '<strong>Step 1/2: Syncing Posts</strong><br>' +
-                            'Found ' + railwayPostCount + ' of ' + wpPostCount + ' posts. Syncing ' + missing + ' missing posts...'
+                            'Found ' + railwayPostCount + ' of ' + wpPostCount + ' posts. Syncing ' + missing + ' posts...'
                         );
-                        
+
                         // Trigger sync and wait for completion
                         startSyncWithProgress($btn, $status, wpPostCount, railwayPostCount);
-                        
+
                     } else {
                         // All synced! Go straight to generation
                         $status.addClass('active').html(`
@@ -163,7 +163,7 @@ function checkPostCounts($btn, $status) {
                                 Connecting to Railway backend and initializing AI models...
                             </div>
                         `);
-                        
+
                         startSuggestionGenerationWithProgress($btn, $status);
                     }
                 },
