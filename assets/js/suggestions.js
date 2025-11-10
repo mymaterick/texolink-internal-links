@@ -369,7 +369,10 @@ jQuery(document).ready(function($) {
             url: texolinkSettings.apiUrl + '/suggestions/batch',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ post_ids: batchIds }),
+            data: JSON.stringify({
+                post_ids: batchIds,
+                site_domain: texolinkSettings.siteDomain || window.location.hostname
+            }),
             timeout: 60000,
             success: function(response) {
                 // Railway already filtered everything - just add to our list
