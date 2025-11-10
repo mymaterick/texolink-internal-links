@@ -214,7 +214,10 @@ class TexoLink_API_Client {
      * Get site overview report
      */
     public function get_overview() {
-        return $this->request('GET', '/reports/overview');
+        $site_url = get_site_url();
+        $domain = parse_url($site_url, PHP_URL_HOST);
+
+        return $this->request('GET', '/reports/overview?site_domain=' . urlencode($domain));
     }
     
     /**
