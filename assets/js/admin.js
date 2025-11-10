@@ -514,7 +514,7 @@ function showCompletionUI($btn, $status, job) {
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <a href="admin.php?page=texolink-suggestions" class="button button-primary button-hero">
+                <a href="admin.php?page=texolink-link-suggest" class="button button-primary button-hero">
                     <span class="dashicons dashicons-admin-links"></span>
                     View Your Link Suggestions
                 </a>
@@ -554,7 +554,7 @@ function showCompletionUI($btn, $status, job) {
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <a href="admin.php?page=texolink-suggestions" class="button button-primary button-hero">
+                <a href="admin.php?page=texolink-link-suggest" class="button button-primary button-hero">
                     <span class="dashicons dashicons-admin-links"></span>
                     View ${suggestionsGenerated.toLocaleString()} New Link Suggestions
                 </a>
