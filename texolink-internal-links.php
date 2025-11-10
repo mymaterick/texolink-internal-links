@@ -3,7 +3,7 @@
  * Plugin Name: TexoLink Internal Links
  * Plugin URI: https://texolink.com
  * Description: AI-powered internal link suggestions for WordPress
- * Version: 2.2.2
+ * Version: 2.2.3
  * Author: Ricky Carter
  * Author URI: https://texolink.com
  * Text Domain: texolink-internal-links
@@ -35,7 +35,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXOLINK_VERSION', '2.2.2');
+define('TEXOLINK_VERSION', '2.2.3');
 define('TEXOLINK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXOLINK_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TEXOLINK_PLUGIN_FILE', __FILE__);
@@ -326,7 +326,8 @@ wp_localize_script('texolink-admin', 'texolinkSettings', array(
     'max_outbound_links' => intval(get_option('texolink_max_outbound_links', 0)),
     'blacklist' => get_option('texolink_blacklist', ''),
     'debug_mode' => intval(get_option('texolink_debug_mode', 0)),
-    'enabled_post_types' => get_option('texolink_enabled_post_types', array('post', 'page'))
+    'enabled_post_types' => get_option('texolink_enabled_post_types', array('post', 'page')),
+    'adminSecret' => get_option('texolink_admin_secret', '')
 ));
         
         // Enqueue Link Suggestions specific scripts

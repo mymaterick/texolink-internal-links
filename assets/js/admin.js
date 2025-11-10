@@ -645,6 +645,9 @@ function createProgressBar(percent, phase) {
                 method: 'POST',
                 contentType: 'application/json',
                 timeout: 30000,
+                headers: {
+                    'X-Admin-Secret': texolinkSettings.adminSecret
+                },
                 success: function(response) {
                     $status
                         .css('background', '#d4edda')

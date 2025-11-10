@@ -30,6 +30,7 @@ if (isset($_POST['texolink_sync_settings']) && check_admin_referer('texolink_set
 
 // Get current settings
 $api_url = get_option('texolink_api_url', '');
+$admin_secret = get_option('texolink_admin_secret', '');
 $site_description = get_option('texolink_site_description', '');
 $min_word_count = get_option('texolink_min_word_count', 2);
 $max_word_count = get_option('texolink_max_word_count', 4);
@@ -118,6 +119,23 @@ $settings_changed = get_option('texolink_settings_changed', false);
                                         <span class="dashicons dashicons-warning"></span> Not connected - check your URL
                                     </p>
                                 <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="texolink_admin_secret">Admin Secret</label>
+                            </th>
+                            <td>
+                                <input type="password"
+                                       id="texolink_admin_secret"
+                                       name="texolink_admin_secret"
+                                       value="<?php echo esc_attr($admin_secret); ?>"
+                                       class="regular-text"
+                                       placeholder="Enter your Railway ADMIN_SECRET"
+                                       autocomplete="off">
+                                <p class="description">
+                                    Required for clearing Railway data. Must match the ADMIN_SECRET in Railway environment variables.
+                                </p>
                             </td>
                         </tr>
                     </table>
@@ -573,6 +591,9 @@ function texolink_save_settings() {
         ? array_map('sanitize_text_field', $_POST['texolink_enabled_post_types'])
         : array('post', 'page'); // Default to post and page if none selected
     update_option('texolink_enabled_post_types', $enabled_post_types);
+
+    // NEW: Save admin secret
+    update_option('texolink_admin_secret', sanitize_text_field($_POST['texolink_admin_secret']));
 
     add_settings_error(
         'texolink_messages',
