@@ -3,7 +3,7 @@
  * Plugin Name: TexoLink Internal Links
  * Plugin URI: https://texolink.com
  * Description: AI-powered internal link suggestions for WordPress
- * Version: 2.2.4
+ * Version: 2.2.5
  * Author: Ricky Carter
  * Author URI: https://texolink.com
  * Text Domain: texolink-internal-links
@@ -35,7 +35,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXOLINK_VERSION', '2.2.4');
+define('TEXOLINK_VERSION', '2.2.5');
 define('TEXOLINK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXOLINK_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TEXOLINK_PLUGIN_FILE', __FILE__);

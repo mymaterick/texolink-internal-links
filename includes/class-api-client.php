@@ -131,14 +131,18 @@ class TexoLink_API_Client {
     
     /**
      * Get post from backend by WordPress ID
+     * CRITICAL: Must filter by site_domain for multi-tenant isolation
      */
     public function get_post_by_wordpress_id($wordpress_id) {
-        $response = $this->request('GET', '/posts?wordpress_id=' . $wordpress_id);
-        
+        $site_url = get_site_url();
+        $domain = parse_url($site_url, PHP_URL_HOST);
+
+        $response = $this->request('GET', '/posts?wordpress_id=' . $wordpress_id . '&site_domain=' . urlencode($domain));
+
         if (is_wp_error($response) || empty($response['posts'])) {
             return false;
         }
-        
+
         return $response['posts'][0];
     }
     
