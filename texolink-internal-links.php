@@ -3,7 +3,7 @@
  * Plugin Name: TexoLink Internal Links
  * Plugin URI: https://texolink.com
  * Description: AI-powered internal link suggestions for WordPress
- * Version: 2.1.19
+ * Version: 2.2.0
  * Author: Ricky Carter
  * Author URI: https://texolink.com
  * Text Domain: texolink-internal-links
@@ -35,7 +35,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXOLINK_VERSION', '2.1.19');
+define('TEXOLINK_VERSION', '2.2.0');
 define('TEXOLINK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXOLINK_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TEXOLINK_PLUGIN_FILE', __FILE__);
@@ -325,7 +325,8 @@ wp_localize_script('texolink-admin', 'texolinkSettings', array(
     'max_inbound_links' => intval(get_option('texolink_max_inbound_links', 0)),
     'max_outbound_links' => intval(get_option('texolink_max_outbound_links', 0)),
     'blacklist' => get_option('texolink_blacklist', ''),
-    'debug_mode' => intval(get_option('texolink_debug_mode', 0))
+    'debug_mode' => intval(get_option('texolink_debug_mode', 0)),
+    'enabled_post_types' => get_option('texolink_enabled_post_types', array('post', 'page'))
 ));
         
         // Enqueue Link Suggestions specific scripts
@@ -448,18 +449,21 @@ wp_localize_script('texolink-admin', 'texolinkSettings', array(
 
         $offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
         $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
-        $post_type = isset($_POST['post_type']) ? sanitize_text_field($_POST['post_type']) : 'all';
+        $post_type_param = isset($_POST['post_type']) ? $_POST['post_type'] : 'all';
         $full_data = isset($_POST['full_data']) ? (bool)$_POST['full_data'] : false;
 
         // Determine which post types to query
-        if ($post_type === 'all') {
+        if (is_array($post_type_param)) {
+            // Array of post types passed from frontend
+            $post_types = array_map('sanitize_text_field', $post_type_param);
+        } elseif ($post_type_param === 'all') {
             // Get all public post types except attachments
             $post_types = get_post_types(array('public' => true), 'names');
             unset($post_types['attachment']);
             $post_types = array_values($post_types);
         } else {
             // Single post type
-            $post_types = array($post_type);
+            $post_types = array(sanitize_text_field($post_type_param));
         }
 
         $args = array(

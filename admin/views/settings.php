@@ -122,7 +122,66 @@ $settings_changed = get_option('texolink_settings_changed', false);
                         </tr>
                     </table>
                 </div>
-                
+
+                <!-- Post Types Section (NEW!) -->
+                <div class="texolink-settings-section" style="margin-top: 30px; border-left: 4px solid #9c27b0;">
+                    <h2>📝 Content Types to Manage</h2>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        <strong>Choose which post types TexoLink should sync and create link suggestions for.</strong> Only selected types will be synced to Railway and included in AI generation.
+                    </p>
+
+                    <table class="form-table" role="presentation">
+                        <tr>
+                            <th scope="row">
+                                <label>Enabled Post Types</label>
+                            </th>
+                            <td>
+                                <?php
+                                // Get currently enabled post types (default to post and page)
+                                $enabled_post_types = get_option('texolink_enabled_post_types', array('post', 'page'));
+
+                                // Get all public post types
+                                $post_types = get_post_types(array('public' => true), 'objects');
+
+                                foreach ($post_types as $post_type) {
+                                    // Skip attachments
+                                    if ($post_type->name === 'attachment') {
+                                        continue;
+                                    }
+
+                                    // Count published posts of this type
+                                    $count = wp_count_posts($post_type->name);
+                                    $total = isset($count->publish) ? $count->publish : 0;
+
+                                    $checked = in_array($post_type->name, $enabled_post_types) ? 'checked' : '';
+
+                                    echo '<label style="display: block; margin-bottom: 10px;">';
+                                    echo '<input type="checkbox" name="texolink_enabled_post_types[]" value="' . esc_attr($post_type->name) . '" ' . $checked . ' /> ';
+                                    echo '<strong>' . esc_html($post_type->labels->name) . '</strong> ';
+                                    echo '<span style="color: #666;">(' . number_format($total) . ' published)</span>';
+                                    echo '</label>';
+                                }
+                                ?>
+                                <p class="description">
+                                    💡 <strong>Recommended:</strong> Enable only the post types you want to include in internal linking.
+                                    Most sites use <strong>Posts</strong> and <strong>Pages</strong>.
+                                </p>
+                                <p class="description" style="color: #d63638;">
+                                    ⚠️ <strong>Important:</strong> Changing this setting will trigger a re-sync on your next generation.
+                                    Railway will only store content from selected post types, saving storage and embedding costs.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0; font-size: 13px; line-height: 1.6;">
+                            <strong>💰 Cost Savings:</strong> Only syncing needed post types reduces storage and AI embedding costs.
+                            For example, if you have 500 posts and 2000 WooCommerce products, enabling only "Posts" saves you from storing and embedding 2000 unnecessary items!
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Target Keywords Section (NEW!) -->
                 <div class="texolink-settings-section" style="margin-top: 30px; border-left: 4px solid #4caf50;">
                     <h2>🎯 Target Keywords (Try and Find These)</h2>
@@ -508,7 +567,13 @@ function texolink_save_settings() {
     
     // NEW: Save debug mode
     update_option('texolink_debug_mode', isset($_POST['texolink_debug_mode']) ? 1 : 0);
-    
+
+    // NEW: Save enabled post types
+    $enabled_post_types = isset($_POST['texolink_enabled_post_types']) && is_array($_POST['texolink_enabled_post_types'])
+        ? array_map('sanitize_text_field', $_POST['texolink_enabled_post_types'])
+        : array('post', 'page'); // Default to post and page if none selected
+    update_option('texolink_enabled_post_types', $enabled_post_types);
+
     add_settings_error(
         'texolink_messages',
         'texolink_message',

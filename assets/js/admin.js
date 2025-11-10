@@ -118,9 +118,12 @@ function checkPostCounts($btn, $status) {
         success: function(wpResponse) {
             const wpPostCount = wpResponse.data.total_posts || 0;
             
-            // Step 2: Get Railway post count for THIS site
+            // Step 2: Get Railway post count for THIS site (filtered by enabled post types)
+            const postTypes = texolinkSettings.enabled_post_types || ['post', 'page'];
+            const postTypesParam = postTypes.join(',');
+
             $.ajax({
-                url: texolinkSettings.apiUrl + '/posts?site_domain=' + (texolinkSettings.siteDomain || window.location.hostname),
+                url: texolinkSettings.apiUrl + '/posts?site_domain=' + (texolinkSettings.siteDomain || window.location.hostname) + '&post_types=' + encodeURIComponent(postTypesParam),
                 method: 'GET',
                 success: function(railwayResponse) {
                     const railwayPostCount = railwayResponse.total || 0;
@@ -194,6 +197,8 @@ function startSyncWithProgress($btn, $status, targetCount, startCount) {
     fetchAllPostIds(0);
 
     function fetchAllPostIds(offset) {
+        const enabledPostTypes = texolinkSettings.enabled_post_types || ['post', 'page'];
+
         $.ajax({
             url: ajaxurl,
             method: 'POST',
@@ -202,7 +207,7 @@ function startSyncWithProgress($btn, $status, targetCount, startCount) {
                 nonce: texolinkSettings.nonce,
                 offset: offset,
                 limit: 100,
-                post_type: 'all'
+                post_type: enabledPostTypes  // Use enabled post types from settings
             },
             success: function(response) {
                 if (response.success && response.data.post_ids) {

@@ -24,10 +24,16 @@ function texolink_count_posts_handler() {
     }
     
     try {
-        // Count published posts
-        $count = wp_count_posts('post');
-        $total = isset($count->publish) ? (int)$count->publish : 0;
-        
+        // Get enabled post types from settings
+        $enabled_post_types = get_option('texolink_enabled_post_types', array('post', 'page'));
+
+        // Count published posts for all enabled post types
+        $total = 0;
+        foreach ($enabled_post_types as $post_type) {
+            $count = wp_count_posts($post_type);
+            $total += isset($count->publish) ? (int)$count->publish : 0;
+        }
+
         wp_send_json_success(['total_posts' => $total]);
         
     } catch (Exception $e) {
