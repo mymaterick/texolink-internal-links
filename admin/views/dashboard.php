@@ -16,7 +16,12 @@ $orphaned = array();
 
 if ($status['connected']) {
     try {
-        $overview = $api_client->get_overview();
+        $overview_response = $api_client->get_overview();
+        // Check if the response is a WP_Error
+        if (!is_wp_error($overview_response)) {
+            $overview = $overview_response;
+        }
+
         $orphaned = $api_client->get_orphaned_posts();
     } catch (Exception $e) {
         // Silently fail - backend might not have data yet
