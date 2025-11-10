@@ -116,7 +116,7 @@ function checkPostCounts($btn, $status) {
             nonce: texolinkSettings.nonce
         },
         success: function(wpResponse) {
-            const wpPostCount = wpResponse.data || 0;
+            const wpPostCount = wpResponse.data.total_posts || 0;
             
             // Step 2: Get Railway post count for THIS site
             $.ajax({
