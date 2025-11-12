@@ -106,15 +106,18 @@ class TexoLink_API_Client {
         $domain = parse_url($site_url, PHP_URL_HOST);
         
         // Prepare post data
+        // Use strip_shortcodes + wp_strip_all_tags to preserve actual text content
+        $clean_content = wp_strip_all_tags(strip_shortcodes($post->post_content));
+
         $data = array(
             'site_domain' => $domain,  // NEW! Links post to site
             'title' => $post->post_title,
-            'content' => wp_strip_all_tags($post->post_content),
+            'content' => $clean_content,
             'full_content' => $post->post_content,
             'url' => get_permalink($post_id),
             'wordpress_id' => $post_id,
             'status' => 'published',
-            'word_count' => str_word_count(wp_strip_all_tags($post->post_content))
+            'word_count' => str_word_count($clean_content)
         );
         
         // Check if post already exists in backend
